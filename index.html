@@ -8,7 +8,7 @@
     <!-- Firebase SDKs -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, onSnapshot, query } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // As credenciais do seu projeto Firebase.
@@ -26,6 +26,18 @@
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
+        
+        // Função para mostrar mensagens de status
+        const showStatusMessage = (message, type) => {
+            const statusEl = document.getElementById('status-message');
+            const statusTextEl = document.getElementById('status-text');
+            statusTextEl.textContent = message;
+            statusEl.className = `fixed top-4 right-4 z-50 p-3 rounded-md shadow-lg ${type === 'error' ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'}`;
+            statusEl.style.display = 'block';
+            setTimeout(() => {
+                statusEl.style.display = 'none';
+            }, 5000); // Esconde a mensagem depois de 5 segundos
+        };
 
         // Autentica o usuário anonimamente
         const authenticateUser = async () => {
@@ -33,11 +45,13 @@
                 await signInAnonymously(auth);
             } catch (error) {
                 console.error("Erro de autenticação:", error);
+                showStatusMessage("Erro de conexão com o banco de dados. Verifique o console para mais detalhes.", "error");
             }
         };
 
         // Inicia a aplicação após a autenticação
         const startApp = () => {
+            showStatusMessage("Conexão com o banco de dados estabelecida!", "success");
             const form = document.getElementById('petition-form');
             const signatureCountEl = document.getElementById('signature-count');
             const signatureListEl = document.getElementById('signature-list');
@@ -88,12 +102,13 @@
                         });
                         
                         form.reset();
+                        showStatusMessage("Sua assinatura foi adicionada com sucesso!", "success");
                     } catch (error) {
                         console.error("Erro ao adicionar documento: ", error);
-                        alert("Não foi possível assinar. Tente novamente.");
+                        showStatusMessage("Não foi possível assinar. Tente novamente.", "error");
                     }
                 } else {
-                    alert('Por favor, preencha todos os campos corretamente. O CPF deve conter 11 números.');
+                    showStatusMessage('Por favor, preencha todos os campos corretamente. O CPF deve conter 11 números.', "error");
                 }
             });
         };
@@ -119,7 +134,12 @@
         }
     </style>
 </head>
-<body class="bg-amber-50 text-gray-800">
+<body class="bg-amber-100 text-gray-800">
+
+    <!-- Mensagens de status (sucesso, erro, etc.) -->
+    <div id="status-message" class="fixed top-4 right-4 z-50 hidden">
+        <p id="status-text"></p>
+    </div>
 
     <div class="container mx-auto p-4 sm:p-6 md:p-8 max-w-4xl">
 
@@ -204,3 +224,4 @@
 
 </body>
 </html>
+
