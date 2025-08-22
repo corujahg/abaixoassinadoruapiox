@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Petição para Reforma da Praça Pio X</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Firebase SDKs -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, onSnapshot, query } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // As credenciais do seu projeto Firebase.
+        const firebaseConfig = {
+            apiKey: "AIzaSyA8ZFB0M7bSIu1rHvkZpI5UMpiZl_RZi4k",
+            authDomain: "abaixo-asinado.firebaseapp.com",
+            projectId: "abaixo-asinado",
+            storageBucket: "abaixo-asinado.firebasestorage.app",
+            messagingSenderId: "585778271958",
+            appId: "1:585778271958:web:52afd4516a3cd4704c5b77"
+        };
+        // O measurementId não é necessário para esta aplicação e pode ser removido do código.
+
+        // Inicia o Firebase e os serviços
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // Autentica o usuário anonimamente
+        const authenticateUser = async () => {
+            try {
+                await signInAnonymously(auth);
+            } catch (error) {
+                console.error("Erro de autenticação:", error);
+            }
+        };
+
+        // Inicia a aplicação após a autenticação
+        const startApp = () => {
+            const form = document.getElementById('petition-form');
+            const signatureCountEl = document.getElementById('signature-count');
+            const signatureListEl = document.getElementById('signature-list');
+            const noSignaturesEl = document.getElementById('no-signatures');
+
+            const signaturesCollectionRef = collection(db, "signatures");
+
+            onSnapshot(signaturesCollectionRef, (snapshot) => {
+                const signatures = [];
+                snapshot.forEach(doc => {
+                    signatures.push({ id: doc.id, ...doc.data() });
+                });
+                renderSignatures(signatures);
+            });
+
+            const renderSignatures = (signatures) => {
+                signatureCountEl.textContent = signatures.length;
+                signatureListEl.innerHTML = '';
+
+                if (signatures.length === 0) {
+                    noSignaturesEl.style.display = 'block';
+                } else {
+                    noSignaturesEl.style.display = 'none';
+                    signatures.forEach(sig => {
+                        const li = document.createElement('li');
+                        li.className = 'p-3 text-gray-700';
+                        li.textContent = sig.fullName;
+                        signatureListEl.appendChild(li);
+                    });
+                }
+            };
+
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                
+                const fullNameInput = document.getElementById('fullName');
+                const cpfInput = document.getElementById('cpf');
+
+                const fullName = fullNameInput.value.trim();
+                const cpf = cpfInput.value.trim();
+
+                if (fullName && cpf && /^\d{11}$/.test(cpf)) {
+                    try {
+                        await addDoc(signaturesCollectionRef, {
+                            fullName: fullName,
+                            cpf: cpf,
+                            createdAt: new Date()
+                        });
+                        
+                        form.reset();
+                    } catch (error) {
+                        console.error("Erro ao adicionar documento: ", error);
+                        alert("Não foi possível assinar. Tente novamente.");
+                    }
+                } else {
+                    alert('Por favor, preencha todos os campos corretamente. O CPF deve conter 11 números.');
+                }
+            });
+        };
+
+        // Escuta o estado de autenticação para iniciar a aplicação
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                startApp();
+            }
+        });
+        
+        // Tenta autenticar quando a página carrega
+        authenticateUser();
+    </script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap');
+        .form-control:focus {
+            box-shadow: 0 0 0 2px #a7f3d0;
+            border-color: #10b981;
+        }
+    </style>
+</head>
+<body class="bg-amber-50 text-gray-800">
+
+    <div class="container mx-auto p-4 sm:p-6 md:p-8 max-w-4xl">
+
+        <header class="text-center mb-8">
+            <h1 class="text-3xl md:text-4xl font-bold text-teal-800">Por uma Nova Praça Pio X</h1>
+            <p class="text-lg text-gray-600 mt-2">Nossa comunidade unida pela reforma e implementação de um campo society.</p>
+        </header>
+
+        <main>
+            <section id="manifesto" class="bg-white p-6 rounded-lg shadow-md mb-8">
+                <h2 class="text-2xl font-bold text-teal-700 mb-4">Nossa Solicitação</h2>
+                <p class="text-base leading-relaxed">
+                    Nós, moradores da <strong>Rua José de Souza Sampaio</strong> e de suas proximidades, por meio desta petição digital, dirigimo-nos aos excelentíssimos senhores <strong>Renato Pimenta</strong>, Secretário Municipal de Obras, e <strong>Raphael Picciani</strong>, Secretário de Estado de Esporte e Lazer do Rio de Janeiro.
+                </p>
+                <p class="text-base leading-relaxed mt-4">
+                    Solicitamos a atenção e o apoio para a urgente necessidade de reforma e revitalização da <strong>Praça Pio X</strong>, um espaço fundamental para a nossa comunidade. Acreditamos que a renovação deste espaço não só melhorará a qualidade de vida dos moradores, mas também servirá como um importante centro de integração e desenvolvimento comunitário.
+                </p>
+            </section>
+
+            <section id="demandas" class="mb-8">
+                <h2 class="text-2xl font-bold text-center text-teal-700 mb-6">Nossos Objetivos Principais</h2>
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div class="bg-white p-6 rounded-lg shadow-md border-l-4 border-teal-500 transform hover:scale-105 transition-transform duration-300">
+                        <div class="flex items-center mb-3">
+                            <span class="text-3xl mr-4">🌳</span>
+                            <h3 class="text-xl font-bold text-gray-800">Reforma Completa da Praça</h3>
+                        </div>
+                        <p class="text-gray-600">Revitalização de todo o espaço, com novos bancos, iluminação, paisagismo e áreas de convívio para todas as idades.</p>
+                    </div>
+                    <div class="bg-white p-6 rounded-lg shadow-md border-l-4 border-emerald-500 transform hover:scale-105 transition-transform duration-300">
+                        <div class="flex items-center mb-3">
+                            <span class="text-3xl mr-4">⚽</span>
+                            <h3 class="text-xl font-bold text-gray-800">Implementação do Campo Society</h3>
+                        </div>
+                        <p class="text-gray-600">Criação de um campo com grama sintética para a prática de esportes, promovendo saúde e lazer para a comunidade.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="assinatura" class="bg-white p-6 rounded-lg shadow-md">
+                <div class="grid md:grid-cols-2 gap-8 items-center">
+                    <div>
+                        <h2 class="text-2xl font-bold text-teal-700 mb-4">Junte-se a Nós!</h2>
+                        <p class="text-gray-600 mb-4">Sua assinatura é um passo fundamental para transformarmos este projeto em realidade. Preencha os campos ao lado para apoiar nossa causa.</p>
+                        <div class="bg-teal-50 border border-teal-200 p-4 rounded-lg text-center">
+                            <p class="text-lg font-bold text-teal-800">Total de Assinaturas</p>
+                            <p id="signature-count" class="text-5xl font-bold text-teal-600 mt-2">0</p>
+                        </div>
+                    </div>
+                    <form id="petition-form" class="space-y-4">
+                        <div>
+                            <label for="fullName" class="block text-sm font-medium text-gray-700">Nome Completo</label>
+                            <input type="text" id="fullName" name="fullName" required class="form-control mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-emerald-500 focus:border-emerald-500 sm:text-sm transition">
+                        </div>
+                        <div>
+                            <label for="cpf" class="block text-sm font-medium text-gray-700">CPF (somente números)</label>
+                            <input type="text" id="cpf" name="cpf" required pattern="\d{11}" title="Digite os 11 dígitos do seu CPF" maxlength="11" class="form-control mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-emerald-500 focus:border-emerald-500 sm:text-sm transition">
+                        </div>
+                        <button type="submit" class="w-full bg-teal-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 transition-colors duration-300">
+                            Assinar Abaixo-assinado
+                        </button>
+                    </form>
+                </div>
+            </section>
+
+            <section id="apoiadores" class="mt-8">
+                 <h2 class="text-2xl font-bold text-center text-teal-700 mb-4">Nossos Apoiadores</h2>
+                 <div id="signature-list-container" class="bg-white p-4 rounded-lg shadow-md max-h-64 overflow-y-auto">
+                     <ul id="signature-list" class="divide-y divide-gray-200">
+                         <li id="no-signatures" class="text-center text-gray-500 py-4">Ainda não há assinaturas. Seja o primeiro!</li>
+                     </ul>
+                 </div>
+            </section>
+
+        </main>
+
+        <footer class="text-center mt-10 pt-6 border-t border-gray-200">
+            <p class="text-sm text-gray-500">&copy; 2025 Moradores da Rua José de Souza Sampaio. Todos os direitos reservados.</p>
+        </footer>
+
+    </div>
+
+</body>
+</html>
